@@ -1,4 +1,3 @@
-// Archivo: AdaptadorSelecciones.java
 package com.example.conmebol;
 
 import android.content.Context;
@@ -7,75 +6,79 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.RadioButton;
 import android.widget.TextView;
+
 import java.util.ArrayList;
 
 public class AdaptadorSelecciones extends BaseAdapter {
 
-    private final ArrayList<Seleccion> entradas;
-    private final int R_layout_IdView;
-    private final Context contexto;
+    private Context context;
+    private int layout;
+    private ArrayList<Seleccion> selecciones;
+    private int selectedPosition = -1; // posición seleccionada para RadioButton
 
-    public AdaptadorSelecciones(Context contexto, int R_layout_IdView, ArrayList<Seleccion> entradas) {
-        super();
-        this.contexto = contexto;
-        this.entradas = entradas;
-        this.R_layout_IdView = R_layout_IdView;
+    public AdaptadorSelecciones(Context context, int layout, ArrayList<Seleccion> selecciones) {
+        this.context = context;
+        this.layout = layout;
+        this.selecciones = selecciones;
     }
 
-    // Devuelve el número total de elementos.
     @Override
     public int getCount() {
-        return entradas.size();
+        return selecciones.size();
     }
 
-    // Devuelve el elemento en una posición dada.
     @Override
-    public Object getItem(int posicion) {
-        return entradas.get(posicion);
+    public Object getItem(int position) {
+        return selecciones.get(position);
     }
 
-    // Devuelve el ID de fila.
     @Override
-    public long getItemId(int posicion) {
-        return posicion;
+    public long getItemId(int position) {
+        return position;
     }
 
-    // Crea y devuelve la vista de cada fila.
-    @Override
-    public View getView(int posicion, View view, ViewGroup parent) {
-        View v = view;
+    private class ViewHolder {
+        ImageView logo;
+        TextView nombre;
+        TextView info;
+        RadioButton radio;
+    }
 
-        // Reutilización u inflación de la vista
-        if (v == null) {
-            LayoutInflater vi = (LayoutInflater)
-                    contexto.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            v = vi.inflate(R_layout_IdView, parent, false);
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        ViewHolder holder;
+
+        if (convertView == null) {
+            LayoutInflater inflater = LayoutInflater.from(context);
+            convertView = inflater.inflate(layout, null);
+
+            holder = new ViewHolder();
+            holder.logo = convertView.findViewById(R.id.itemLogo);
+            holder.nombre = convertView.findViewById(R.id.itemNombre);
+            holder.info = convertView.findViewById(R.id.itemInfo);
+            holder.radio = convertView.findViewById(R.id.itemRadio);
+
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder) convertView.getTag();
         }
 
-        // Obtener el objeto de datos
-        Seleccion entrada = entradas.get(posicion);
+        Seleccion seleccion = selecciones.get(position);
+        holder.logo.setImageResource(seleccion.getIdLogo());
+        holder.nombre.setText(seleccion.getNombre());
+        holder.info.setText(seleccion.getInfo());
 
-        if (entrada != null) {
-            // Asignar el logo (ID: itemLogo en item_seleccion.xml)
-            ImageView logo = v.findViewById(R.id.itemLogo);
-            if (logo != null) {
-                logo.setImageResource(entrada.getIdLogo());
-            }
+        // Manejo del RadioButton
+        holder.radio.setChecked(position == selectedPosition);
 
-            // Asignar el nombre (ID: itemNombre en item_seleccion.xml)
-            TextView nombre = v.findViewById(R.id.itemNombre);
-            if (nombre != null) {
-                nombre.setText(entrada.getNombre());
-            }
+        // Selección al hacer clic en el item completo
+        convertView.setOnClickListener(v -> {
+            selectedPosition = position;
+            notifyDataSetChanged();
+        });
 
-            // Asignar la información (ID: itemInfo en item_seleccion.xml)
-            TextView info = v.findViewById(R.id.itemInfo);
-            if (info != null) {
-                info.setText(entrada.getInfo());
-            }
-        }
-
-        return v;
+        return convertView;
     }
 }
